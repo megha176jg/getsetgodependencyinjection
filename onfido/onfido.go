@@ -9,9 +9,9 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
+	"net/textproto"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
@@ -54,6 +54,7 @@ func getLocalIP() string {
 	}
 	return ""
 }
+
 func (osdk *OnfidoSDK) addHeaders(req *http.Request) {
 	req.Header.Add("Authorization", fmt.Sprintf("Token token=%s", osdk.AuthToken))
 	req.Header.Add("Content-Type", "application/json")
@@ -78,7 +79,6 @@ func (osdk *OnfidoSDK) CreateApplicant(firstName, lastName string, location bool
 		return nil, errors.Wrap(ErrCallingOnfido, err.Error())
 	}
 	defer res.Body.Close()
-
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
@@ -89,64 +89,99 @@ func (osdk *OnfidoSDK) CreateApplicant(firstName, lastName string, location bool
 	if err != nil {
 		return nil, errors.Wrap(ErrUnmarshalingResponse, err.Error())
 	}
+	if c := res.StatusCode; c < 200 || c > 299 {
+		return nil, errors.Wrap(ErrStatusCodeOtherThan2XX, fmt.Sprintf("status code %d errors %v", res.StatusCode, result.Error))
+
+	}
+
 	return &result, nil
 }
 
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
+}
+
+func createFormFile(writer *multipart.Writer, fieldname string, file io.ReadSeeker) (io.Writer, error) {
+	buffer := make([]byte, 512)
+	if _, err := file.Read(buffer); err != nil {
+		return nil, err
+	}
+	if _, err := file.Seek(0, 0); err != nil {
+		return nil, err
+	}
+	var filename string
+	if f, ok := file.(*os.File); ok {
+		filename = f.Name()
+	}
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition",
+		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldname), escapeQuotes(filename)))
+	h.Set("Content-Type", http.DetectContentType(buffer))
+	return writer.CreatePart(h)
+}
 func (osdk *OnfidoSDK) UploadDocument(applicantId, fileType, filePath, side string) (*UploadDocumentResponse, error) {
-	tr := osdk.nr.StartTransaction(ONFIDO_UPLOAD_DOCUMENT_CALL)
+	tr := osdk.nr.StartTransaction(ONFIDO_CREATE_APPLICANT_CALL)
 	defer tr.End()
 
-	url := osdk.Endpoint + "/v3.4/documents"
-	method := "POST"
-
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-	_ = writer.WriteField("type", fileType)
-	file, errFile2 := os.Open(filePath)
-	if errFile2 != nil {
-		return nil, errors.Wrap(ErrReadingFile, errFile2.Error())
-	}
-	defer file.Close()
-	part2, errFile2 := writer.CreateFormFile("file", filepath.Base(filePath))
-	if errFile2 != nil {
-		return nil, errors.Wrap(ErrReadingFile, errFile2.Error())
-	}
-	_, errFile2 = io.Copy(part2, file)
-	if errFile2 != nil {
-		return nil, errors.Wrap(ErrReadingFile, errFile2.Error())
-	}
-	_ = writer.WriteField("applicant_id", applicantId)
-	err := writer.Close()
+	doc, err := os.Open(filePath)
 	if err != nil {
+		return nil, errors.Wrap(ErrReadingFile, err.Error())
+	}
+	defer doc.Close()
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
 
+	part, err := createFormFile(writer, "file", doc)
+	if err != nil {
+		return nil, errors.Wrap(ErrReadingFile, err.Error())
+	}
+	if _, err := io.Copy(part, doc); err != nil {
+		return nil, errors.Wrap(ErrReadingFile, err.Error())
+	}
+	if err := writer.WriteField("type", fileType); err != nil {
 		return nil, errors.Wrap(ErrWritingFormField, err.Error())
 	}
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
+	if err := writer.WriteField("side", side); err != nil {
+		return nil, errors.Wrap(ErrWritingFormField, err.Error())
+	}
+	if err := writer.WriteField("applicant_id", applicantId); err != nil {
+		return nil, errors.Wrap(ErrWritingFormField, err.Error())
+	}
+	if err := writer.Close(); err != nil {
+		return nil, errors.Wrap(ErrWritingFormField, err.Error())
+	}
+	req, err := http.NewRequest("POST", osdk.Endpoint+"/v3.4/documents", body)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequestCreation, err.Error())
 	}
 	osdk.addHeaders(req)
-	req.Header.Add("Content-Type", "multipart/form-data")
+
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	res, err := client.Do(req)
+	res, err := osdk.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(ErrCallingOnfido, err.Error())
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Wrap(ErrReadingResponseBody, err.Error())
 	}
 	var result UploadDocumentResponse
-	err = json.Unmarshal(body, &result)
+
+	err = json.Unmarshal(resBody, &result)
 	if err != nil {
 		return nil, errors.Wrap(ErrUnmarshalingResponse, err.Error())
 	}
-	return &result, nil
+	if c := res.StatusCode; c < 200 || c > 299 {
+		return nil, errors.Wrap(ErrStatusCodeOtherThan2XX, fmt.Sprintf("status code %d errors %v", res.StatusCode, result.Error))
+
+	}
+	return &result, err
 }
 
 func (osdk *OnfidoSDK) CreateCheck(applicantId string, reportNames []string) (*CreateCheckResponse, error) {
@@ -178,6 +213,10 @@ func (osdk *OnfidoSDK) CreateCheck(applicantId string, reportNames []string) (*C
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return nil, errors.Wrap(ErrUnmarshalingResponse, err.Error())
+	}
+	if c := res.StatusCode; c < 200 || c > 299 {
+		return nil, errors.Wrap(ErrStatusCodeOtherThan2XX, fmt.Sprintf("status code %d errors %v", res.StatusCode, result.Error))
+
 	}
 	return &result, nil
 }
@@ -213,6 +252,10 @@ func (osdk *OnfidoSDK) RetriveReport(reportId string) (*ReportResponse, error) {
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return nil, errors.Wrap(ErrUnmarshalingResponse, err.Error())
+	}
+	if c := res.StatusCode; c < 200 || c > 299 {
+		return nil, errors.Wrap(ErrStatusCodeOtherThan2XX, fmt.Sprintf("status code %d errors %v", res.StatusCode, result.Error))
+
 	}
 	return &result, nil
 }
@@ -250,6 +293,9 @@ func (osdk *OnfidoSDK) DownloadDocument(documentId string, destPath string) (err
 	_, err = io.Copy(file, res.Body)
 	if err != nil {
 		return errors.Wrap(ErrReadingResponseBody, err.Error())
+	}
+	if res.StatusCode != 200 {
+		return errors.Wrap(ErrStatusCodeOtherThan2XX, fmt.Sprintf("status code %d", res.StatusCode))
 	}
 	return nil
 }

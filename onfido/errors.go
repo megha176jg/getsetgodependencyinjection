@@ -10,4 +10,5 @@ var (
 	ErrReadingFile             = errors.New("ERROR : ONFIDO SDK : reading upload file")
 	ErrWritingFormField        = errors.New("ERROR : ONFIDO SDK : writing form field")
 	ErrFileOrDirectoryNotFound = errors.New("ERROR : ONFIDO SDK : file or directory not found")
+	ErrStatusCodeOtherThan2XX  = errors.New("ERROR : ONFIDO SDK : status code other than 2XX")
 )

@@ -12,7 +12,8 @@ type CreateApplicantRequest struct {
 }
 
 type CreateApplicantResponse struct {
-	ID string `json:"id"`
+	ID    string      `json:"id"`
+	Error interface{} `json:"error"`
 }
 
 type CreateCheckRequest struct {
@@ -21,19 +22,21 @@ type CreateCheckRequest struct {
 }
 
 type CreateCheckResponse struct {
-	ID        string   `json:"id"`
-	ReportIds []string `json:"report_ids"`
-	Status    string   `json:"status"`
+	ID        string      `json:"id"`
+	ReportIds []string    `json:"report_ids"`
+	Status    string      `json:"status"`
+	Error     interface{} `json:"error"`
 }
 
 type UploadDocumentResponse struct {
-	ID           string `json:"id"`
-	FileName     string `json:"file_name"`
-	FileType     string `json:"file_type"`
-	Type         string `json:"type"`
-	Size         string `json:"size"`
-	Side         string `json:"side"`
-	DownloadHref string `json:"download_href"`
+	ID           string      `json:"id"`
+	FileName     string      `json:"file_name"`
+	FileType     string      `json:"file_type"`
+	Type         string      `json:"type"`
+	Size         string      `json:"size"`
+	Side         string      `json:"side"`
+	DownloadHref string      `json:"download_href"`
+	Error        interface{} `json:"error"`
 }
 
 type ReportResponse struct {
@@ -55,5 +58,6 @@ type ReportResponse struct {
 		IssuingCountry string `json:"issuing_country"`
 		Nationality    string `json:"nationality"`
 	} `json:"properties"`
-	Result string `json:"result"`
+	Result string      `json:"result"`
+	Error  interface{} `json:"error"`
 }
