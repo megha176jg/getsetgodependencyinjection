@@ -33,7 +33,7 @@ type UploadDocumentResponse struct {
 	FileName     string      `json:"file_name"`
 	FileType     string      `json:"file_type"`
 	Type         string      `json:"type"`
-	Size         string      `json:"size"`
+	Size         string      `json:"file_size"`
 	Side         string      `json:"side"`
 	DownloadHref string      `json:"download_href"`
 	Error        interface{} `json:"error"`
@@ -57,6 +57,14 @@ type ReportResponse struct {
 		Gender         string `json:"gender"`
 		IssuingCountry string `json:"issuing_country"`
 		Nationality    string `json:"nationality"`
+		Address        string `json:"address"`
+		AddressLines   struct {
+			City          string `json:"city"`
+			Country       string `json:"country"`
+			PostalCode    string `json:"postal_code"`
+			State         string `json:"state"`
+			StreetAddress string `json:"street_address"`
+		} `json:"address_lines"`
 	} `json:"properties"`
 	Result string      `json:"result"`
 	Error  interface{} `json:"error"`
