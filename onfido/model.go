@@ -33,7 +33,7 @@ type UploadDocumentResponse struct {
 	FileName     string      `json:"file_name"`
 	FileType     string      `json:"file_type"`
 	Type         string      `json:"type"`
-	Size         string      `json:"file_size"`
+	Size         int         `json:"file_size"`
 	Side         string      `json:"side"`
 	DownloadHref string      `json:"download_href"`
 	Error        interface{} `json:"error"`
