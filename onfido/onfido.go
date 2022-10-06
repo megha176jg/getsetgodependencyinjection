@@ -21,14 +21,13 @@ import (
 )
 
 type OnfidoSDK struct {
-	Endpoint   string
-	AuthToken  string
+	config     OnfidoConfig
 	nr         newrelic.Agent
 	httpClient httpclient.HTTPClient
 }
 
-func New(endpoint, authToken string, client httpclient.HTTPClient, nr newrelic.Agent) *OnfidoSDK {
-	return &OnfidoSDK{Endpoint: endpoint, AuthToken: authToken, httpClient: client, nr: nr}
+func New(config OnfidoConfig, client httpclient.HTTPClient, nr newrelic.Agent) *OnfidoSDK {
+	return &OnfidoSDK{config: config, httpClient: client, nr: nr}
 }
 
 var (
@@ -56,14 +55,14 @@ func getLocalIP() string {
 }
 
 func (osdk *OnfidoSDK) addHeaders(req *http.Request) {
-	req.Header.Add("Authorization", fmt.Sprintf("Token token=%s", osdk.AuthToken))
+	req.Header.Add("Authorization", fmt.Sprintf("Token token=%s", osdk.config.GetOnfidoAuthToken()))
 	req.Header.Add("Content-Type", "application/json")
 
 }
 func (osdk *OnfidoSDK) CreateApplicant(firstName, lastName string, location bool) (*CreateApplicantResponse, error) {
 	tr := osdk.nr.StartTransaction(ONFIDO_CREATE_APPLICANT_CALL)
 	defer tr.End()
-	url := osdk.Endpoint + "/v3.4/applicants"
+	url := osdk.config.GetOnfidoEndpoint() + "/v3.4/applicants"
 	method := "POST"
 	bytes, _ := json.Marshal(CreateApplicantRequest{FirstName: firstName, LastName: lastName, Location: Location{CountryOfResidence: "IND", IPAddress: getLocalIP()}})
 	payload := strings.NewReader(string(bytes))
@@ -154,7 +153,7 @@ func (osdk *OnfidoSDK) UploadDocument(applicantId, fileType, filePath, side stri
 	if err := writer.Close(); err != nil {
 		return nil, errors.Wrap(ErrWritingFormField, err.Error())
 	}
-	req, err := http.NewRequest("POST", osdk.Endpoint+"/v3.4/documents", body)
+	req, err := http.NewRequest("POST", osdk.config.GetOnfidoEndpoint()+"/v3.4/documents", body)
 	if err != nil {
 		return nil, errors.Wrap(ErrRequestCreation, err.Error())
 	}
@@ -188,7 +187,7 @@ func (osdk *OnfidoSDK) CreateCheck(applicantId string, reportNames []string) (*C
 	tr := osdk.nr.StartTransaction(ONFIDO_CREATE_CHECK_CALL)
 	defer tr.End()
 
-	url := osdk.Endpoint + "/v3.4/checks"
+	url := osdk.config.GetOnfidoEndpoint() + "/v3.4/checks"
 	method := "POST"
 	bytes, _ := json.Marshal(&CreateCheckRequest{ApplicantId: applicantId, ReportNames: reportNames})
 	payload := strings.NewReader(string(bytes))
@@ -225,7 +224,7 @@ func (osdk *OnfidoSDK) RetriveReport(reportId string) (*ReportResponse, error) {
 	tr := osdk.nr.StartTransaction(ONFIDO_RETRIVE_REPORT_CALL)
 	defer tr.End()
 
-	url := fmt.Sprintf("%s/v3.4/reports/%s", osdk.Endpoint, reportId)
+	url := fmt.Sprintf("%s/v3.4/reports/%s", osdk.config.GetOnfidoEndpoint(), reportId)
 	method := "GET"
 
 	payload := strings.NewReader("")
@@ -264,7 +263,7 @@ func (osdk *OnfidoSDK) DownloadDocument(documentId string, destPath string) (err
 	tr := osdk.nr.StartTransaction(ONFIDO_DOWNLOAD_DOCUMENT_CALL)
 	defer tr.End()
 
-	url := fmt.Sprintf("%s/v3.4/documents/%s/download", osdk.Endpoint, documentId)
+	url := fmt.Sprintf("%s/v3.4/documents/%s/download", osdk.config.GetOnfidoEndpoint(), documentId)
 	method := "GET"
 
 	client := &http.Client{}

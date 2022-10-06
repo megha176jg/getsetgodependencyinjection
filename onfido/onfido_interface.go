@@ -7,3 +7,8 @@ type Onfido interface {
 	RetriveReport(reportId string) (*ReportResponse, error)
 	DownloadDocument(documentId string, destPath string) (err error)
 }
+
+type OnfidoConfig interface {
+	GetOnfidoAuthToken() string
+	GetOnfidoEndpoint() string
+}

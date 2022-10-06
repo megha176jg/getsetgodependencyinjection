@@ -25,11 +25,21 @@ type onfidoSuite struct {
 	srv        Onfido
 }
 
+type Conf struct {
+}
+
+func (c *Conf) GetOnfidoAuthToken() string {
+	return ""
+}
+func (c *Conf) GetOnfidoEndpoint() string {
+	return ""
+}
+
 func (suite *onfidoSuite) SetupTest() {
 	suite.httpClient = *httpclientmocks.NewHTTPClient(suite.T())
 	suite.nr = *newrelicmocks.NewAgent(suite.T())
 	suite.nr.On("StartTransaction", mock.Anything).Return(nil)
-	suite.srv = New("endpoint", "authToken", &suite.httpClient, &suite.nr)
+	suite.srv = New(&Conf{}, &suite.httpClient, &suite.nr)
 }
 
 func (suite *onfidoSuite) TestOnfidoSDK_CreateApplicant() {
