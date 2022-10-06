@@ -15,41 +15,31 @@ import (
 )
 
 type DigilockerImpl struct {
-	appId       string
-	appKey      string
-	hvEndpoint  string
-	nr          newrelic.Agent
-	httpClient  httpclient.HTTPClient
-	redirectURL string
+	config     DigilockerConfig
+	nr         newrelic.Agent
+	httpClient httpclient.HTTPClient
 }
 
 //New creates a new digilocker client
-func New(appId, appKey string, hvEndpoint string, nr newrelic.Agent, client httpclient.HTTPClient, redirectURL string) *DigilockerImpl {
+func New(config DigilockerConfig, nr newrelic.Agent, client httpclient.HTTPClient) *DigilockerImpl {
 	dl := DigilockerImpl{
-		appId:       appId,
-		appKey:      appKey,
-		hvEndpoint:  hvEndpoint,
-		nr:          nr,
-		httpClient:  client,
-		redirectURL: redirectURL,
+		config:     config,
+		nr:         nr,
+		httpClient: client,
 	}
 	return &dl
 }
 
-func (dl *DigilockerImpl) GetRedirectURL() string {
-	return dl.redirectURL
-}
-
 func (dl *DigilockerImpl) addHeaders(req *http.Request) {
-	req.Header.Add("appId", dl.appId)
-	req.Header.Add("appKey", dl.appKey)
+	req.Header.Add("appId", dl.config.GetDigilockerAppId())
+	req.Header.Add("appKey", dl.config.GetDigilockerAppKey())
 	req.Header.Add("Content-Type", "application/json")
 
 }
 func (dl *DigilockerImpl) StartKYC(transactionId, referenceId, redirectURL string) (*KYCStartDetails, error) {
 	tr := dl.nr.StartTransaction(HV_START_KYC_CALL)
 	defer tr.End()
-	url := dl.hvEndpoint + "/api/digilocker/start"
+	url := dl.config.GetDigilockerEndpoint() + "/api/digilocker/start"
 	method := "POST"
 
 	reqObj, _ := json.Marshal(&KYCStartRequest{ReferenceId: referenceId, RedirectURL: redirectURL})
@@ -91,7 +81,7 @@ func (dl *DigilockerImpl) StartKYC(transactionId, referenceId, redirectURL strin
 func (dl *DigilockerImpl) CheckAccountstatus(mobile, aadhaar string) (*AccountStatusDetails, error) {
 	tr := dl.nr.StartTransaction(HV_ACCOUNT_STATUS_CALL)
 	defer tr.End()
-	url := dl.hvEndpoint + "/api/digilocker/accountStatus"
+	url := dl.config.GetDigilockerEndpoint() + "/api/digilocker/accountStatus"
 	method := "POST"
 
 	reqObj, _ := json.Marshal(&AccountStatusRequest{Mobile: mobile, Aadhaar: aadhaar})
@@ -134,7 +124,7 @@ func (dl *DigilockerImpl) CheckAccountstatus(mobile, aadhaar string) (*AccountSt
 func (dl *DigilockerImpl) GetAddharDetails(transactionId, referenceId string) (*AadhaarDetails, error) {
 	tr := dl.nr.StartTransaction(HV_ADDHAR_DETAILS_CALL)
 	defer tr.End()
-	url := dl.hvEndpoint + "/api/digilocker/eAadhaarDetails"
+	url := dl.config.GetDigilockerEndpoint() + "/api/digilocker/eAadhaarDetails"
 	method := "POST"
 
 	reqObj, _ := json.Marshal(&EAadhaarDetailsRequest{ReferenceId: referenceId, AadhaarFile: "yes"})
@@ -177,7 +167,7 @@ func (dl *DigilockerImpl) GetAddharDetails(transactionId, referenceId string) (*
 func (dl *DigilockerImpl) Healthcheck() (*HealthcheckResult, error) {
 	tr := dl.nr.StartTransaction(HV_HEALTHCHECK_CALL)
 	defer tr.End()
-	url := dl.hvEndpoint + "/api/health/digilocker/accountStatus"
+	url := dl.config.GetDigilockerEndpoint() + "/api/health/digilocker/accountStatus"
 
 	method := "GET"
 	req, err := http.NewRequest(method, url, nil)

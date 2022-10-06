@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
 	"bitbucket.org/junglee_games/getsetgo/newrelic"
@@ -14,24 +13,21 @@ import (
 )
 
 type ProfileSDK struct {
-	endpoint   string
+	config     ProfileConfig
 	nr         newrelic.Agent
 	httpClient httpclient.HTTPClient
-	authToken  string
 }
 
-func New(endpoint string, nr newrelic.Agent, httpClient httpclient.HTTPClient, authToken string) *ProfileSDK {
+func New(config ProfileConfig, nr newrelic.Agent, httpClient httpclient.HTTPClient) *ProfileSDK {
 	return &ProfileSDK{
-		endpoint:   endpoint,
+		config:     config,
 		nr:         nr,
 		httpClient: httpClient,
-		authToken:  authToken,
 	}
 }
 
 func (psdk *ProfileSDK) GetUserByID(userId int) (*ProfileResponse, error) {
-	return &ProfileResponse{RegistrationTime: time.Now().Unix(), UserId: userId, Mobile: "7040309988", FirstDepositAmount: 100, FirstDepositDate: time.Now().Unix()}, nil
-	url := psdk.endpoint + "?id=123"
+	url := psdk.config.GetProfileEndpoint() + "?id=123"
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
@@ -39,7 +35,7 @@ func (psdk *ProfileSDK) GetUserByID(userId int) (*ProfileResponse, error) {
 		return nil, errors.Wrap(ErrCreatingRequest, err.Error())
 	}
 
-	req.Header.Add("Authorization", psdk.authToken)
+	req.Header.Add("Authorization", psdk.config.GetJWRAuthToken())
 	res, err := psdk.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(ErrCallingProfile, err.Error())

@@ -17,3 +17,8 @@ type ProfileResponse struct {
 type Profile interface {
 	GetUserByID(userId int) (*ProfileResponse, error)
 }
+
+type ProfileConfig interface {
+	GetProfileEndpoint() string
+	GetJWRAuthToken() string
+}

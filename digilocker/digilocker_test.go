@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"testing"
 
 	httpclientmocks "bitbucket.org/junglee_games/getsetgo/httpclient/mocks"
@@ -27,41 +26,27 @@ type digilockerSuite struct {
 	srv        Digilocker
 }
 
+type Conf struct {
+	appId  string
+	appKey string
+	url    string
+}
+
+func (c *Conf) GetDigilockerAppId() string {
+	return c.appId
+}
+func (c *Conf) GetDigilockerAppKey() string {
+	return c.appKey
+}
+func (c *Conf) GetDigilockerEndpoint() string {
+	return c.url
+}
+
 func (suite *digilockerSuite) SetupTest() {
 	suite.httpClient = *httpclientmocks.NewHTTPClient(suite.T())
 	suite.nr = *newrelicmocks.NewAgent(suite.T())
 	suite.nr.On("StartTransaction", mock.Anything).Return(nil)
-	suite.srv = New("test", "testing", "url.com", &suite.nr, &suite.httpClient, "")
-}
-
-func (suite *digilockerSuite) TestNew() {
-	type args struct {
-		appId  string
-		appKey string
-	}
-	tests := []struct {
-		name string
-		args args
-		want *DigilockerImpl
-	}{
-		{name: "1",
-			args: args{
-				appId:  "123",
-				appKey: "appKey",
-			},
-			want: &DigilockerImpl{
-				appId:  "123",
-				appKey: "appKey",
-			},
-		},
-	}
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			if got := New(tt.args.appId, tt.args.appKey, "", nil, nil, ""); !reflect.DeepEqual(got, tt.want) {
-				suite.Equal(tt.want, got)
-			}
-		})
-	}
+	suite.srv = New(&Conf{}, &suite.nr, &suite.httpClient)
 }
 
 func (suite *digilockerSuite) TestDigilocker_addHeaders() {
@@ -95,8 +80,7 @@ func (suite *digilockerSuite) TestDigilocker_addHeaders() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			dl := &DigilockerImpl{
-				appId:  tt.fields.AppId,
-				appKey: tt.fields.AppKey,
+				config: &Conf{appId: tt.fields.AppId, appKey: tt.fields.AppKey},
 			}
 			dl.addHeaders(tt.args.req)
 			suite.Equal(tt.want, tt.args.req)
@@ -155,17 +139,12 @@ func (suite *digilockerSuite) TestDigilockerImpl_GetAddharDetails() {
 
 func (suite *digilockerSuite) TestDigilockerImpl_CheckAccountstatus() {
 
-	type fields struct {
-		AppId  string
-		AppKey string
-	}
 	type args struct {
 		mobile  string
 		aadhaar string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    *AccountStatusDetails
 		doErr   error
@@ -208,10 +187,7 @@ func (suite *digilockerSuite) TestDigilockerImpl_CheckAccountstatus() {
 }
 
 func (suite *digilockerSuite) TestDigilockerImpl_StartKYC() {
-	type fields struct {
-		AppId  string
-		AppKey string
-	}
+
 	type args struct {
 		transactionId string
 		referenceId   string
@@ -219,7 +195,6 @@ func (suite *digilockerSuite) TestDigilockerImpl_StartKYC() {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    *KYCStartDetails
 		wantErr bool
