@@ -27,7 +27,7 @@ func New(config ProfileConfig, nr newrelic.Agent, httpClient httpclient.HTTPClie
 }
 
 func (psdk *ProfileSDK) GetUserByID(userId int) (*ProfileResponse, error) {
-	url := psdk.config.GetProfileEndpoint() + "?id=123"
+	url := fmt.Sprintf(psdk.config.GetProfileEndpoint()+"?id=%s", userId)
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
