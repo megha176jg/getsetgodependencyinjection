@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"time"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
 	"bitbucket.org/junglee_games/getsetgo/newrelic"
@@ -14,27 +14,32 @@ import (
 )
 
 type DepositSDK struct {
-	endpoint   string
 	nr         newrelic.Agent
-	authToken  string
 	httpClient httpclient.HTTPClient
+	config     DepositConfig
 }
 
-func New(endpoint string, nr newrelic.Agent, httpClient httpclient.HTTPClient, authToken string) *DepositSDK {
-	return &DepositSDK{endpoint: endpoint, nr: nr, httpClient: httpClient, authToken: authToken}
+func New(config DepositConfig, nr newrelic.Agent, httpClient httpclient.HTTPClient) *DepositSDK {
+	return &DepositSDK{config: config, nr: nr, httpClient: httpClient}
 }
 
 func (ds *DepositSDK) GetFirstDepositFromHouzat(mobile string) (*DepositResponse, error) {
-	return &DepositResponse{Amount: 6000, DepositedOn: time.Now().Unix()}, nil
-	url := fmt.Sprintf(ds.endpoint+"?mobile=%s", mobile)
-	method := "GET"
+	tr := ds.nr.StartTransaction(GET_FIRST_DEPOSIT_FROM_HOUZAT_CALL)
+	defer tr.End()
 
+	url := fmt.Sprintf(ds.config.GetDepositEndpoint()+"/payment-service/pd/getDepositSummary?userId=&mobileNo=%s", mobile)
+	method := "GET"
+	log.Print(url)
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(ErrCreatingRequest, err.Error())
 	}
+	req.Header.Add("Content-Type", "application/json")
 
-	req.Header.Add("Authorization", ds.authToken)
+	req.Header.Add("apiKey", ds.config.GetDepositAPIKey())
+	req.Header.Add("merchantName", "playfantasy")
+	req.Header.Add("role", "ADMIN")
+	req.Header.Add("token", ds.config.GetDepositAuthToken())
 	res, err := ds.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(ErrCallingHouzatPaymentService, err.Error())
