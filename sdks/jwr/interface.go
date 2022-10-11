@@ -2,6 +2,7 @@ package jwr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -18,10 +19,9 @@ type JWR interface {
 	GetUserProfile(userID int) (*UserProfile, error)
 }
 
-func (this *JWRImpl) GetUserProfile(userID int) (*UserProfile, error) {
+func (this *JWRImpl) GetUserProfile(ctx context.Context, userID int) (*UserProfile, error) {
 
 	var result UserProfile
-
 	request, err := http.NewRequest(http.MethodGet, this.BaseURL+GetUserProfilePath+"?id="+strconv.Itoa(userID), nil)
 	if err != nil {
 		return nil, err
