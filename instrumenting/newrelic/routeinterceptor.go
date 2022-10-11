@@ -8,12 +8,6 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func init() {
-
-	context.SetHandlerName("kyc-api/business/mid/newrelic.*", "iris.newrelic")
-
-}
-
 const transactionContextKey = "newrelic.transaction"
 
 func MiddleLayer(app *newrelic.Application) context.Handler {
@@ -24,7 +18,7 @@ func MiddleLayer(app *newrelic.Application) context.Handler {
 
 	// See `GetTransaction` to retrieve the transaction created.
 
-	return func(ctx *context.Context) {
+	return func(ctx context.Context) {
 
 		name := ctx.Path()
 
@@ -40,7 +34,7 @@ func MiddleLayer(app *newrelic.Application) context.Handler {
 
 }
 
-func GetNewrelicTxn(ctx *context.Context) (*newrelic.Transaction, error) {
+func GetNewrelicTxn(ctx context.Context) (*newrelic.Transaction, error) {
 
 	val := ctx.Values().Get(transactionContextKey)
 
