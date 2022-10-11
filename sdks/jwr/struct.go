@@ -12,3 +12,9 @@ type UserProfile struct {
 	State      string `json:"state"`
 	Gender     string `json:"gender"`
 }
+
+type JWRSDKConfig struct {
+	BaseURL    string
+	Token      string
+	APITimeout int
+}
