@@ -1,7 +1,6 @@
 package jwr
 
 import (
-	"log"
 	"strings"
 	"time"
 )
@@ -38,11 +37,15 @@ func (u UserProfile) GetFullName() string {
 	return strings.TrimSpace(u.FirstName + " " + u.MiddleName + " " + u.LastName)
 }
 
-func (u UserProfile) GetDOB(log *log.Logger, traceID string) string {
+func (u UserProfile) GetDOB() (string, error) {
 	t := time.Unix(0, int64(u.DOB)*int64(time.Millisecond))
-	loc, _ := time.LoadLocation("Asia/Kolkata")
+
+	loc, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		return "", err
+	}
+
 	t = t.In(loc)
 	s := t.Format("02/01/2006")
-	log.Printf("GETDOB %s : profileDOB: %d (%s) : output DOB: %s\n", traceID, u.DOB, t.Format(time.RFC3339), s)
-	return s
+	return s, nil
 }
