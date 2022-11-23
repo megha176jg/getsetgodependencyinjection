@@ -9,11 +9,10 @@ import (
 )
 
 type Agent struct {
-	a   *newrelic.Application
-	log *log.Logger
+	a *newrelic.Application
 }
 
-func New(log log.Logger, name, key string) (*Agent, error) {
+func New(name, key string) (*Agent, error) {
 	log.SetPrefix(name + " : NewRelic : ")
 	app, err := newrelic.NewApplication(
 		newrelic.ConfigAppName(name),
@@ -29,7 +28,7 @@ func New(log log.Logger, name, key string) (*Agent, error) {
 	if err != nil {
 		return &Agent{}, errors.Wrap(err, "getting newrelic session")
 	}
-	return &Agent{app, &log}, nil
+	return &Agent{app}, nil
 }
 
 func (ag Agent) StartTransaction(key string) *newrelic.Transaction {
