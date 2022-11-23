@@ -1,7 +1,6 @@
 package newrelic
 
 import (
-	"log"
 	"time"
 
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -15,12 +14,10 @@ type Agent interface {
 }
 
 type NewrelicImpl struct {
-	a   *newrelic.Application
-	log *log.Logger
+	a *newrelic.Application
 }
 
-func New(log *log.Logger, name, key string) (*NewrelicImpl, error) {
-	log.SetPrefix(name + " : NewRelic : ")
+func New(name, key string) (*NewrelicImpl, error) {
 	app, err := newrelic.NewApplication(
 		newrelic.ConfigAppName(name),
 		newrelic.ConfigLicense(key),
@@ -35,7 +32,7 @@ func New(log *log.Logger, name, key string) (*NewrelicImpl, error) {
 	if err != nil {
 		return &NewrelicImpl{}, errors.Wrap(err, "getting newrelic session")
 	}
-	return &NewrelicImpl{app, log}, nil
+	return &NewrelicImpl{app}, nil
 }
 
 func (ag *NewrelicImpl) StartTransaction(key string) *newrelic.Transaction {
