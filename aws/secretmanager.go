@@ -12,6 +12,7 @@ import (
 type Secrets struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Token    string `json:"token"`
 }
 
 func (a AWS) GetFromSM(key string) (Secrets, error) {
