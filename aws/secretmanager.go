@@ -15,6 +15,7 @@ type Secrets struct {
 	Token    string `json:"token"`
 }
 
+// TODO: return interface from here which has method with fetch with param key to make this generic :)
 func (a AWS) GetFromSM(key string) (Secrets, error) {
 	var secretsVals Secrets
 	output, err := a.sm.GetSecretValue(&secretsmanager.GetSecretValueInput{
