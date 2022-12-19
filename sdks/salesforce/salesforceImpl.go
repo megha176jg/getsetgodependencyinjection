@@ -78,7 +78,7 @@ func (salesforceImpl *SalesforceImpl) CreateTask(ctx context.Context, createTask
 	}
 
 	request.Header.Set(contentType, applicationJson)
-	request.Header.Set(authorization, salesforceImpl.Token)
+	request.Header.Set("access_token", salesforceImpl.Token)
 
 	resp, err := salesforceImpl.httpClient.Do(request)
 	if err != nil {
