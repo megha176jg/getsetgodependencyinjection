@@ -17,6 +17,10 @@ func (this Config) InitiateLogger() error {
 	switch this.LoggerService {
 	case "file":
 	default:
+
+		if this.Encoding == "" {
+			this.Encoding = "json"
+		}
 		var zConfig zapConfig
 		if this.OutputPaths == "" {
 			this.OutputPaths = "stdout"
