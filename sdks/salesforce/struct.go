@@ -27,9 +27,9 @@ type CreateTaskRequest struct {
 }
 
 type CreateTaskResponse struct {
-	ID      string        `json:"id"`
-	Success bool          `json:"success"`
-	Errors  []interface{} `json:"errors"`
+	ID      string   `json:"id"`
+	Success bool     `json:"success"`
+	Errors  []string `json:"errors"`
 }
 
 type SalesforceSDKConfig struct {

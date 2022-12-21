@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
@@ -101,5 +102,12 @@ func (salesforceImpl *SalesforceImpl) CreateTask(ctx context.Context, createTask
 	if err != nil {
 		return nil, err
 	}
+
+	for _, errors := range createTaskResponse.Errors {
+		if errors == "xyx" {
+			return nil, fmt.Errorf(errors, ErrInAvailableService)
+		}
+	}
+
 	return &createTaskResponse, nil
 }
