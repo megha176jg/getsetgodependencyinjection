@@ -15,7 +15,6 @@ func InfoSpecific(ctx context.Context, logType string, a ...interface{}) {
 
 	loggerHandle, err := GetLoggerHandle(ctx, logType)
 	if err != nil {
-		fmt.Println("Skipping Log Info Message. " + err.Error())
 		return
 	}
 	msg := Convert(ctx, a...)
@@ -30,11 +29,10 @@ func DebugSpecific(ctx context.Context, logType string, a ...interface{}) {
 
 	loggerHandle, err := GetLoggerHandle(ctx, logType)
 	if err != nil {
-		fmt.Println("Skipping Log Info Message. " + err.Error())
 		return
 	}
 	msg := Convert(ctx, a...)
-	loggerHandle.Info(ctx, msg)
+	loggerHandle.Debug(ctx, msg)
 }
 
 func Debug(ctx context.Context, a ...interface{}) {
@@ -45,11 +43,10 @@ func ErrorSpecific(ctx context.Context, logType string, a ...interface{}) {
 
 	loggerHandle, err := GetLoggerHandle(ctx, logType)
 	if err != nil {
-		fmt.Println("Skipping Log Info Message. " + err.Error())
 		return
 	}
 	msg := Convert(ctx, a...)
-	loggerHandle.Info(ctx, msg)
+	loggerHandle.Error(ctx, msg)
 }
 
 func Error(ctx context.Context, a ...interface{}) {
@@ -60,11 +57,10 @@ func WarningSpecific(ctx context.Context, logType string, a ...interface{}) {
 
 	loggerHandle, err := GetLoggerHandle(ctx, logType)
 	if err != nil {
-		fmt.Println("Skipping Log Info Message. " + err.Error())
 		return
 	}
 	msg := Convert(ctx, a...)
-	loggerHandle.Info(ctx, msg)
+	loggerHandle.Warning(ctx, msg)
 }
 
 func Warning(ctx context.Context, a ...interface{}) {

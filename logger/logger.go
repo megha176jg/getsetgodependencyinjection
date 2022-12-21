@@ -10,9 +10,7 @@ import (
 
 var loggerImpls map[string]LogInterface
 
-//
 // InitiateLogger represents logger service which use zap library to print logs
-//
 func (this Config) InitiateLogger() error {
 
 	loggerImpls = make(map[string]LogInterface)
@@ -22,6 +20,9 @@ func (this Config) InitiateLogger() error {
 		var zConfig zapConfig
 		if this.OutputPaths == "" {
 			this.OutputPaths = "stdout"
+		}
+		if this.ErrorOutputPaths == "" {
+			this.ErrorOutputPaths = "stdout"
 		}
 		copier.Copy(&zConfig, &this)
 		zLogger, err := getZapLogger(zConfig)
