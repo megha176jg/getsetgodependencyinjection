@@ -9,28 +9,19 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/api v1.15.3
+	github.com/jinzhu/copier v0.3.5
 	github.com/kataras/iris/v12 v12.2.0-beta5
 	github.com/newrelic/go-agent/v3 v3.20.2
 	github.com/newrelic/go-agent/v3/integrations/nrredis-v8 v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
+	go.uber.org/zap v1.17.0
 )
 
 require (
-	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.0.0-20211216131617-bbee439d559c // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/pelletier/go-toml v1.9.3 // indirect
-	github.com/spf13/afero v1.6.0 // indirect
-	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.8.1 // indirect
-	github.com/subosito/gotenv v1.2.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 )
 
 require (
