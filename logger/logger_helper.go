@@ -75,13 +75,6 @@ func Convert(ctx context.Context, a ...interface{}) message.LogMsg {
 			Message: "Empty log param",
 		}
 	}
-	if paramLength == 1 {
-		//Only Log Message string is passed
-		return message.LogMsg{
-			Message: fmt.Sprintf("%s", a[0]),
-		}
-	}
-	fmt.Printf("##### %v", "sahil")
 
 	//First param is message string; Second param is request context
 	vMsg, msgOk := a[0].(string)
@@ -93,12 +86,10 @@ func Convert(ctx context.Context, a ...interface{}) message.LogMsg {
 
 	vRc, rcOk := ctx.Value("RequestContext").(*utils.RequestContext)
 	if !rcOk {
-		fmt.Printf("##### %v", rcOk)
 		return message.LogMsg{
 			Message: fmt.Sprintf("Erorr in parsing logging params for %v", a),
 		}
 	}
-	fmt.Printf("##### %v", vRc)
 
 	return message.LogMsg{
 		Message:       vMsg,
