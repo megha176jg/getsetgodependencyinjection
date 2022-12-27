@@ -1,7 +1,6 @@
 package newrelic
 
 import (
-	"log"
 	"time"
 
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -13,10 +12,11 @@ type Agent struct {
 }
 
 func New(name, key string) (*Agent, error) {
-	log.SetPrefix(name + " : NewRelic : ")
+
 	app, err := newrelic.NewApplication(
 		newrelic.ConfigAppName(name),
 		newrelic.ConfigLicense(key),
+		//nrzap.ConfigLogger(logger.Logger),
 	)
 	if err != nil {
 		return &Agent{}, errors.Wrap(err, "initiating newrelic session")

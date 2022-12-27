@@ -13,6 +13,7 @@ require (
 	github.com/kataras/iris/v12 v12.2.0-beta5
 	github.com/newrelic/go-agent/v3 v3.20.2
 	github.com/newrelic/go-agent/v3/integrations/nrredis-v8 v1.0.0
+	github.com/newrelic/go-agent/v3/integrations/nrzap v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.17.0

@@ -46,6 +46,7 @@ func ErrorSpecific(ctx context.Context, logType string, a ...interface{}) {
 		return
 	}
 	msg := Convert(ctx, a...)
+
 	loggerHandle.Error(ctx, msg)
 }
 

@@ -19,11 +19,12 @@ type AccessTokenResponse struct {
 }
 
 type CreateTaskRequest struct {
-	Status         string `json:"Status" validate:"required"`
-	Subject        string `json:"Subject" validate:"required"`
-	Priority       string `json:"Priority" validate:"required"`
-	UserIDC        string `json:"UserId__c" validate:"required"`
-	SocialNetworkC string `json:"social_network__c" validate:"required"`
+	Status        string `json:"Status" validate:"required"`
+	Subject       string `json:"Subject" validate:"required"`
+	Priority      string `json:"Priority" validate:"required"`
+	UserID        string `json:"UserId__c" validate:"required"`
+	SocialNetwork string `json:"social_network__c" validate:"required"`
+	AccessToken   string
 }
 
 type CreateTaskResponse struct {

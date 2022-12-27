@@ -70,7 +70,6 @@ func (this *zapImpl) Warning(ctx context.Context, msg message.LogMsg) {
 		})
 	}
 	this.zap.Warn(msg.Message, fields...)
-
 }
 
 func (this *zapImpl) Info(ctx context.Context, msg message.LogMsg) {
