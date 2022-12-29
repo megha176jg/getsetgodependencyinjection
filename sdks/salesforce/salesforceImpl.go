@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"io/ioutil"
+	"mime/multipart"
+
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
-	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
 )
 
@@ -20,66 +22,73 @@ type SalesforceImpl struct {
 }
 
 func (salesforceImpl *SalesforceImpl) RequestAccessToken(ctx context.Context, accessTokenRequest AccessTokenRequest, apiTimeout int) (*AccessTokenResponse, error) {
-	validate := validator.New()
-	if err := validate.Struct(accessTokenRequest); err != nil {
+	url := "https://test.salesforce.com/services/oauth2/token"
+	method := "POST"
+
+	payload := &bytes.Buffer{}
+	writer := multipart.NewWriter(payload)
+	_ = writer.WriteField("username", accessTokenRequest.Username)
+	_ = writer.WriteField("password", accessTokenRequest.Password)
+	_ = writer.WriteField("grant_type", "password")
+	_ = writer.WriteField("client_id", accessTokenRequest.ClientId)
+	_ = writer.WriteField("client_secret", accessTokenRequest.ClientSecret)
+	_ = writer.WriteField("assertion", "tmp")
+	err := writer.Close()
+	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
-	accessTokenRequestBytes, err := json.Marshal(accessTokenRequest)
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, salesforceImpl.BaseURL+RequestAccessTokenPath, bytes.NewReader(accessTokenRequestBytes))
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
-	request.Header.Set(contentType, applicationJson)
-	request.Header.Set(authorization, salesforceImpl.Token)
-
-	resp, err := salesforceImpl.httpClient.Do(request)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "while making api call to Request Access Token")
-	}
-
-	body := &bytes.Buffer{}
-	_, err = body.ReadFrom(resp.Body)
-	if err != nil {
-		return nil, errors.Wrapf(err, "reading response from Request Access Token")
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status + body.String())
+		return nil, err
 	}
 
 	var accessTokenResponse AccessTokenResponse
-	err = json.Unmarshal(body.Bytes(), &accessTokenResponse)
+	err = json.Unmarshal(body, &accessTokenResponse)
 	if err != nil {
 		return nil, err
 	}
+
 	return &accessTokenResponse, nil
 }
 
 func (salesforceImpl *SalesforceImpl) CreateTask(ctx context.Context, createTaskRequest CreateTaskRequest, apiTimeout int) (*CreateTaskResponse, error) {
-	validate := validator.New()
-	if err := validate.Struct(createTaskRequest); err != nil {
-		return nil, err
+
+	httpReq := SaleForceCreateTaskHTTPRequest{
+		Status:        createTaskRequest.Status,
+		Subject:       createTaskRequest.Subject,
+		Priority:      createTaskRequest.Priority,
+		UserID:        createTaskRequest.UserID,
+		SocialNetwork: createTaskRequest.SocialNetwork,
 	}
 
-	createTaskRequestBytes, err := json.Marshal(createTaskRequest)
+	createTaskRequestBytes, err := json.Marshal(httpReq)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(http.MethodPost, salesforceImpl.BaseURL+CreateTaskPath, bytes.NewReader(createTaskRequestBytes))
+	request, err := http.NewRequest(http.MethodPost, createTaskRequest.BaseURL+CreateTaskPath, bytes.NewReader(createTaskRequestBytes))
 	if err != nil {
 		return nil, err
 	}
 
 	request.Header.Set(contentType, applicationJson)
-	request.Header.Set("access_token", createTaskRequest.AccessToken)
+	request.Header.Set("Authorization", "Bearer "+createTaskRequest.AccessToken)
 
 	resp, err := salesforceImpl.httpClient.Do(request)
 	if err != nil {
@@ -103,11 +112,8 @@ func (salesforceImpl *SalesforceImpl) CreateTask(ctx context.Context, createTask
 		return nil, err
 	}
 
-	for _, errors := range createTaskResponse.Errors {
-		if errors == "xyx" {
-			return nil, fmt.Errorf(errors, ErrInAvailableService)
-		}
+	if len(createTaskResponse.Errors) > 0 {
+		return nil, fmt.Errorf("something went wrong")
 	}
-
 	return &createTaskResponse, nil
 }
