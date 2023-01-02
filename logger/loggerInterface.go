@@ -2,17 +2,15 @@ package logger
 
 import (
 	"context"
-
-	"bitbucket.org/junglee_games/getsetgo/logger/message"
 )
 
 var _ LogInterface = (*zapImpl)(nil)
 
 type LogInterface interface {
-	Trace(ctx context.Context, msg message.LogMsg)
-	Warning(ctx context.Context, msg message.LogMsg)
-	Info(ctx context.Context, msg message.LogMsg)
-	Error(ctx context.Context, msg message.LogMsg)
-	Debug(ctx context.Context, msg message.LogMsg)
-	Profile(ctx context.Context, msg message.LogMsg)
+	Trace(ctx context.Context, a ...interface{})
+	Warning(ctx context.Context, a ...interface{})
+	Info(ctx context.Context, a ...interface{})
+	Error(ctx context.Context, a ...interface{})
+	Debug(ctx context.Context, a ...interface{})
+	Profile(ctx context.Context, a ...interface{})
 }

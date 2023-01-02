@@ -11,9 +11,11 @@ import (
 var loggerImpls map[string]LogInterface
 
 // InitiateLogger represents logger service which use zap library to print logs
-func (this Config) InitiateLogger() error {
+func (this Config) InitiateLogger() (LogInterface, error) {
 
 	loggerImpls = make(map[string]LogInterface)
+	var zLogger LogInterface
+	var err error
 	switch this.LoggerService {
 	case "file":
 	default:
@@ -29,13 +31,13 @@ func (this Config) InitiateLogger() error {
 			this.ErrorOutputPaths = "stdout"
 		}
 		copier.Copy(&zConfig, &this)
-		zLogger, err := getZapLogger(zConfig)
+		zLogger, err = getZapLogger(zConfig)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		loggerImpls["zap"] = zLogger
 	}
-	return nil
+	return zLogger, nil
 }
 
 func getZapLogger(config zapConfig) (LogInterface, error) {

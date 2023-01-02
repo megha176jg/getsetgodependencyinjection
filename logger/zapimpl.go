@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"bitbucket.org/junglee_games/getsetgo/logger/message"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -13,8 +12,9 @@ type zapImpl struct {
 	zap *zap.Logger
 }
 
-func (this *zapImpl) Trace(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Trace(ctx context.Context, a ...interface{}) {
 
+	msg := Convert(ctx, a...)
 	fields := make([]zap.Field, 0)
 	for _, eachField := range logFields {
 		var value string
@@ -43,7 +43,10 @@ func (this *zapImpl) Trace(ctx context.Context, msg message.LogMsg) {
 	this.zap.Error(msg.Message, fields...)
 }
 
-func (this *zapImpl) Warning(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Warning(ctx context.Context, a ...interface{}) {
+
+	msg := Convert(ctx, a...)
+
 	fields := make([]zap.Field, 0)
 	for _, eachField := range logFields {
 		var value string
@@ -72,8 +75,9 @@ func (this *zapImpl) Warning(ctx context.Context, msg message.LogMsg) {
 	this.zap.Warn(msg.Message, fields...)
 }
 
-func (this *zapImpl) Info(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Info(ctx context.Context, a ...interface{}) {
 
+	msg := Convert(ctx, a...)
 	fields := make([]zap.Field, 0)
 	for _, eachField := range logFields {
 		var value string
@@ -102,7 +106,9 @@ func (this *zapImpl) Info(ctx context.Context, msg message.LogMsg) {
 	this.zap.Info(msg.Message, fields...)
 }
 
-func (this *zapImpl) Error(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Error(ctx context.Context, a ...interface{}) {
+
+	msg := Convert(ctx, a...)
 	fields := make([]zap.Field, 0)
 	for _, eachField := range logFields {
 		var value string
@@ -131,7 +137,9 @@ func (this *zapImpl) Error(ctx context.Context, msg message.LogMsg) {
 	this.zap.Error(msg.Message, fields...)
 }
 
-func (this *zapImpl) Debug(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Debug(ctx context.Context, a ...interface{}) {
+
+	msg := Convert(ctx, a...)
 	fields := make([]zap.Field, 0)
 	for _, eachField := range logFields {
 		var value string
@@ -160,7 +168,7 @@ func (this *zapImpl) Debug(ctx context.Context, msg message.LogMsg) {
 	this.zap.Debug(msg.Message, fields...)
 }
 
-func (this *zapImpl) Profile(ctx context.Context, msg message.LogMsg) {
+func (this *zapImpl) Profile(ctx context.Context, a ...interface{}) {
 
 	//todo
 }
