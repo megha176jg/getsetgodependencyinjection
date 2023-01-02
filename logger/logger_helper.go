@@ -18,6 +18,7 @@ func InfoSpecific(ctx context.Context, logType string, a ...interface{}) {
 		return
 	}
 	msg := Convert(ctx, a...)
+
 	loggerHandle.Info(ctx, msg)
 }
 
