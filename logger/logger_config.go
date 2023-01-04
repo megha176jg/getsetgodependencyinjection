@@ -1,5 +1,7 @@
 package logger
 
+import "context"
+
 type Config struct {
 	LoggerService    string        `json:"LoggerService"`
 	Level            int           `json:"Level"`
@@ -10,6 +12,7 @@ type Config struct {
 	OutputPaths      string        `json:"OutputPaths"`
 	ErrorOutputPaths string        `json:"ErrorOutputPaths"`
 	AppName          string        `json:"AppName"`
+	PushMetrics      func(ctx context.Context, msg string) error
 }
 
 type EncoderConfig struct {
@@ -38,6 +41,7 @@ type zapConfig struct {
 	OutputPaths      string        `json:"OutputPaths"`
 	ErrorOutputPaths string        `json:"ErrorOutputPaths"`
 	AppName          string        `json:"AppName"`
+	PushMetrics      func(ctx context.Context, msg string) error
 }
 
 type zapEncoderConfig struct {

@@ -24,6 +24,7 @@ func (this Config) InitiateLogger() (LogInterface, error) {
 			this.Encoding = "json"
 		}
 		var zConfig zapConfig
+		zConfig.PushMetrics = this.PushMetrics
 		if this.OutputPaths == "" {
 			this.OutputPaths = "stdout"
 		}
@@ -80,6 +81,7 @@ func getZapLogger(config zapConfig) (LogInterface, error) {
 	defer Logger.Sync()
 
 	return &zapImpl{
-		zap: Logger,
+		zap:         Logger,
+		PushMetrics: config.PushMetrics,
 	}, nil
 }
