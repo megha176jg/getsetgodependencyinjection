@@ -41,8 +41,9 @@ func (this *zapImpl) Trace(ctx context.Context, a ...interface{}) {
 			String: value,
 		})
 	}
-	this.PushMetrics(ctx, msg.Message)
-
+	if this.PushMetrics != nil {
+		this.PushMetrics(ctx, msg.Message)
+	}
 	this.zap.Error(msg.Message, fields...)
 }
 
@@ -76,7 +77,9 @@ func (this *zapImpl) Warning(ctx context.Context, a ...interface{}) {
 		})
 	}
 
-	this.PushMetrics(ctx, msg.Message)
+	if this.PushMetrics != nil {
+		this.PushMetrics(ctx, msg.Message)
+	}
 
 	this.zap.Warn(msg.Message, fields...)
 }
@@ -109,8 +112,10 @@ func (this *zapImpl) Info(ctx context.Context, a ...interface{}) {
 			String: value,
 		})
 	}
+	if this.PushMetrics != nil {
+		this.PushMetrics(ctx, msg.Message)
+	}
 
-	this.PushMetrics(ctx, msg.Message)
 	this.zap.Info(msg.Message, fields...)
 }
 
@@ -143,7 +148,9 @@ func (this *zapImpl) Error(ctx context.Context, a ...interface{}) {
 		})
 	}
 
-	this.PushMetrics(ctx, msg.Message)
+	if this.PushMetrics != nil {
+		this.PushMetrics(ctx, msg.Message)
+	}
 	this.zap.Error(msg.Message, fields...)
 }
 
@@ -176,7 +183,9 @@ func (this *zapImpl) Debug(ctx context.Context, a ...interface{}) {
 		})
 	}
 
-	this.PushMetrics(ctx, msg.Message)
+	if this.PushMetrics != nil {
+		this.PushMetrics(ctx, msg.Message)
+	}
 
 	this.zap.Debug(msg.Message, fields...)
 }
