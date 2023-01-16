@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
-	"bitbucket.org/junglee_games/getsetgo/newrelic"
+	"bitbucket.org/junglee_games/getsetgo/instrumenting/newrelic"
 
 	"github.com/pkg/errors"
 )

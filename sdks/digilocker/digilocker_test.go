@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	httpclientmocks "bitbucket.org/junglee_games/getsetgo/httpclient/mocks"
-	newrelicmocks "bitbucket.org/junglee_games/getsetgo/newrelic/mocks"
+	"bitbucket.org/junglee_games/getsetgo/instrumenting/newrelic"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
@@ -22,7 +22,6 @@ func TestDigilockerSuite(t *testing.T) {
 type digilockerSuite struct {
 	suite.Suite
 	httpClient httpclientmocks.HTTPClient
-	nr         newrelicmocks.Agent
 	srv        Digilocker
 }
 
@@ -44,9 +43,7 @@ func (c *Conf) GetDigilockerEndpoint() string {
 
 func (suite *digilockerSuite) SetupTest() {
 	suite.httpClient = *httpclientmocks.NewHTTPClient(suite.T())
-	suite.nr = *newrelicmocks.NewAgent(suite.T())
-	suite.nr.On("StartTransaction", mock.Anything).Return(nil)
-	suite.srv = New(&Conf{}, &suite.nr, &suite.httpClient)
+	suite.srv = New(&Conf{}, newrelic.Agent{}, &suite.httpClient)
 }
 
 func (suite *digilockerSuite) TestDigilocker_addHeaders() {

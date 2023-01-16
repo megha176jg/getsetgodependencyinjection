@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	httpclientmocks "bitbucket.org/junglee_games/getsetgo/httpclient/mocks"
-	newrelicmocks "bitbucket.org/junglee_games/getsetgo/newrelic/mocks"
+	"bitbucket.org/junglee_games/getsetgo/instrumenting/newrelic"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -21,7 +22,6 @@ func TestOnfidoSuite(t *testing.T) {
 type onfidoSuite struct {
 	suite.Suite
 	httpClient httpclientmocks.HTTPClient
-	nr         newrelicmocks.Agent
 	srv        Onfido
 }
 
@@ -37,9 +37,7 @@ func (c *Conf) GetOnfidoEndpoint() string {
 
 func (suite *onfidoSuite) SetupTest() {
 	suite.httpClient = *httpclientmocks.NewHTTPClient(suite.T())
-	suite.nr = *newrelicmocks.NewAgent(suite.T())
-	suite.nr.On("StartTransaction", mock.Anything).Return(nil)
-	suite.srv = New(&Conf{}, &suite.httpClient, &suite.nr)
+	suite.srv = New(&Conf{}, &suite.httpClient, newrelic.Agent{})
 }
 
 func (suite *onfidoSuite) TestOnfidoSDK_CreateApplicant() {

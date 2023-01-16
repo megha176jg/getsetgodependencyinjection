@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"bitbucket.org/junglee_games/getsetgo/newrelic"
+	"bitbucket.org/junglee_games/getsetgo/instrumenting/newrelic"
 
 	"github.com/pkg/errors"
 )
