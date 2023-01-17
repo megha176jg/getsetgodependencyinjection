@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -98,8 +99,9 @@ func unzip(src, dest string) error {
 	return nil
 }
 
-func Unzipper(data []byte) ([]*os.File, error) {
-	var files []*os.File
+func Unzipper(data []byte) (map[string]string, error) {
+
+	files := make(map[string]string)
 
 	// Create a new zip reader
 	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
@@ -115,21 +117,14 @@ func Unzipper(data []byte) ([]*os.File, error) {
 		}
 		defer rc.Close()
 
-		path := file.Name
-		// Create the file on disk
-		f, err := os.Create(path)
-		if err != nil {
-			return nil, err
-		}
-		defer f.Close()
-
-		// Copy the file data
-		_, err = io.Copy(f, rc)
+		// read data from file
+		data, err := ioutil.ReadAll(rc)
 		if err != nil {
 			return nil, err
 		}
 
-		files = append(files, f)
+		// store above readed in map
+		files[file.Name] = string(data)
 	}
 
 	return files, nil
