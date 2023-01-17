@@ -99,12 +99,12 @@ func unzip(src, dest string) error {
 	return nil
 }
 
-func Unzipper(data []byte) (map[string]string, error) {
+func UnzipFile(content []byte) (FilesData, error) {
 
 	files := make(map[string]string)
 
 	// Create a new zip reader
-	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	reader, err := zip.NewReader(bytes.NewReader(content), int64(len(content)))
 	if err != nil {
 		return nil, err
 	}
