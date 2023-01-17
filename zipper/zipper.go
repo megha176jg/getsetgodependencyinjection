@@ -21,7 +21,6 @@ type FilesData map[string]string
 func NewZipper() *Zipper {
 	buffer := new(bytes.Buffer)
 	zipWriter := zip.NewWriter(buffer)
-
 	return &Zipper{buffer: buffer, writer: zipWriter}
 }
 
@@ -97,6 +96,44 @@ func unzip(src, dest string) error {
 		}
 	}
 	return nil
+}
+
+func Unzipper(data []byte) ([]*os.File, error) {
+	var files []*os.File
+
+	// Create a new zip reader
+	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through the files in the zip archive
+	for _, file := range reader.File {
+		rc, err := file.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer rc.Close()
+
+		path := file.Name
+		// Create the file on disk
+		f, err := os.Create(path)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+
+		// Copy the file data
+		_, err = io.Copy(f, rc)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, f)
+	}
+
+	return files, nil
+
 }
 
 // for reference
