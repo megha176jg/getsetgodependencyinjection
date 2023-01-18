@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"os"
 
+	"bitbucket.org/junglee_games/getsetgo/files"
 	"bitbucket.org/junglee_games/getsetgo/zipper"
 )
 
-func main() {
+func zip() {
 
 	zipper := zipper.NewZipper()
 
@@ -28,4 +30,36 @@ func main() {
 
 	// you can save it to file as well
 	zipper.SaveFile("myzip.zip")
+}
+
+func gunzip() {
+	filename := "files.zip.gz"
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	name, rcontent, err := zipper.GunZip(filename, string(content))
+	if err != nil {
+		panic(err)
+	}
+	files.SaveFile(".", name, rcontent)
+}
+
+func gzip() {
+	filename := "files.zip"
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	name, rcontent, err := zipper.GZip(filename, string(content))
+	if err != nil {
+		panic(err)
+	}
+	files.SaveFile(".", name, rcontent)
+}
+
+func main() {
+	// zip()
+	// gunzip()
+	gzip()
 }
