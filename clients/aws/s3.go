@@ -1,20 +1,24 @@
 package aws
 
 import (
+	"io/ioutil"
 	"log"
 	"strings"
 	"sync"
 	"time"
 
+	"bitbucket.org/junglee_games/getsetgo/common_errors"
 	"bitbucket.org/junglee_games/getsetgo/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
 )
 
 type S3Store struct {
 	uploader   *s3manager.Uploader
+	s3Service  *s3.S3
 	bucketName string
 	jobQueue   chan *models.FileData
 	//AckChan will receive a *models.FileData once its upload is completed by SaveAsync method
@@ -24,40 +28,55 @@ type S3Store struct {
 	logger     *log.Logger
 }
 
-func newS3Uploader() (*s3manager.Uploader, error) {
+func newS3Session() (*session.Session, error) {
 	cred := aws.NewConfig()
 	cred.WithRegion("ap-south-1")
 	// Initialize a session in ap-south-2 that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
-	sess, err := session.NewSession(cred)
-	if err != nil {
-		return nil, errors.Wrap(err, "getting aws session")
-	}
+	return session.NewSession(cred)
+
+}
+
+func newS3Uploader(session *session.Session) (*s3manager.Uploader, error) {
+
 	// Setup the S3 Upload Manager. Also see the SDK doc for the Upload Manager
 	// for more information on configuring part size, and concurrency.
 	//
 	// http://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#NewUploader
-	uploader := s3manager.NewUploader(sess)
+	uploader := s3manager.NewUploader(session)
 	uploader.MaxUploadParts = 1
 
 	return uploader, nil
 }
 
 func NewS3Store(bucketName string, uploaderCount, maxRetries int, logger *log.Logger) (*S3Store, error) {
+
 	var err error
 	s3Store := S3Store{bucketName: bucketName, maxRetries: maxRetries}
+
 	s3Store.jobQueue = make(chan *models.FileData, 100)
 	s3Store.ackChan = make(chan *models.FileData, 100)
-	s3Store.uploader, err = newS3Uploader()
+
 	s3Store.logger = logger
+
+	session, err := newS3Session()
 	if err != nil {
 		return nil, err
 	}
+
+	s3Store.uploader, err = newS3Uploader(session)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Store.s3Service = s3.New(session)
+
 	s3Store.wg = new(sync.WaitGroup)
 	for i := 0; i < uploaderCount; i++ {
 		s3Store.wg.Add(1)
 		go s3Store.startUploader()
 	}
+
 	return &s3Store, nil
 }
 
@@ -129,4 +148,23 @@ func (s3S *S3Store) startUploader() {
 	}
 	s3S.wg.Done()
 	s3S.logger.Print("jobQueue of s3 uploader closed , exiting startUploader function ")
+}
+
+func (s3S *S3Store) DownloadFile(filename string) ([]byte, error) {
+
+	// Define the parameters for the download request
+	params := &s3.GetObjectInput{
+		Bucket: aws.String(s3S.bucketName),
+		Key:    aws.String(filename),
+	}
+	// Download the file
+	resp, err := s3S.s3Service.GetObject(params)
+	if err != nil {
+		return nil, errors.Wrap(common_errors.ErrS3FileDownload, err.Error())
+	}
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(common_errors.ErrS3FileBodyReader, err.Error())
+	}
+	return bytes, nil
 }
