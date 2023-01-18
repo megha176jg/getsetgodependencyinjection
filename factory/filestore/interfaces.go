@@ -14,6 +14,9 @@ type FileStore interface {
 	// it will wait until all the workers finish its uploading
 	WaitForFinishingUpload()
 
+	// download file
+	DownloadFile(filename string) ([]byte, error)
+
 	// it will return ack chan
 	GetAckChan() chan *models.FileData
 }
