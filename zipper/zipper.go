@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,6 @@ type FilesData map[string]string
 func NewZipper() *Zipper {
 	buffer := new(bytes.Buffer)
 	zipWriter := zip.NewWriter(buffer)
-
 	return &Zipper{buffer: buffer, writer: zipWriter}
 }
 
@@ -97,6 +97,38 @@ func unzip(src, dest string) error {
 		}
 	}
 	return nil
+}
+
+func UnzipFile(content []byte) (FilesData, error) {
+
+	files := make(map[string]string)
+
+	// Create a new zip reader
+	reader, err := zip.NewReader(bytes.NewReader(content), int64(len(content)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through the files in the zip archive
+	for _, file := range reader.File {
+		rc, err := file.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer rc.Close()
+
+		// read data from file
+		data, err := ioutil.ReadAll(rc)
+		if err != nil {
+			return nil, err
+		}
+
+		// store above readed in map
+		files[file.Name] = string(data)
+	}
+
+	return files, nil
+
 }
 
 // for reference
