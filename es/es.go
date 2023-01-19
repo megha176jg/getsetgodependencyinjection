@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 
-	"bitbucket.org/junglee_games/japi-kafka-elasticsearch-integration/models"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -132,7 +131,7 @@ func (es ES) Patch(ctx context.Context, data io.Reader, index, docID string) err
 	return nil
 }
 
-func (es ES) SearchQuery(ctx context.Context, index string, query interface{}) (models.SearchResult, error) {
+func (es ES) SearchQuery(ctx context.Context, index string, query interface{}) (string, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		log.Printf("Error encoding search query: %s", err)
@@ -147,19 +146,12 @@ func (es ES) SearchQuery(ctx context.Context, index string, query interface{}) (
 	)
 	if err != nil {
 		log.Printf("Error getting response from elasticsearch GET: %s\n", err)
+		return "",nil
 	}
-	defer res.Body.Close()
-	// Deserialize the response into a map.
-	var r models.SearchResult
 
 	if res.IsError() {
 		log.Printf("[%s] Error searching query=%v", res.String(), query)
-		return r, fmt.Errorf("[%s] Error searching query=%v", res.Status(), query)
+		return "", fmt.Errorf("[%s] Error searching query=%v", res.Status(), query)
 	}
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Printf("Error parsing the response body: %s", err)
-		return r, err
-
-	}
-	return r, nil
+	return res.String(),nil
 }
