@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -22,7 +23,8 @@ func (s *SlackClient) SendMessage(msg string) error {
 	}
 
 	method := "POST"
-	payload := strings.NewReader(msg)
+	nmsg := fmt.Sprintf(`{"text":"%s"}`, msg)
+	payload := strings.NewReader(nmsg)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, s.url, payload)
