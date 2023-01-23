@@ -183,8 +183,8 @@ func (s3S *S3Store) GetSignedURL(filepath string, expriryMinutes int) (string, e
 
 	// Define the parameters for the download request
 	req, _ := s3S.s3Service.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String("myBucket"),
-		Key:    aws.String("myKey"),
+		Bucket: aws.String(s3S.bucketName),
+		Key:    aws.String(filepath),
 	})
 	// Download the file
 	url, err := req.Presign(time.Minute * time.Duration(expriryMinutes))
