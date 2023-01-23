@@ -106,6 +106,16 @@ func (s3S *S3Store) Save(filesData *models.FileData) (string, error) {
 	return op.Location, nil
 }
 
+// it will return signed url and error
+func (s3S *S3Store) TemporarySave(filesData *models.FileData, expriryMinutes int) (string, error) {
+
+	_, err := s3S.Save(filesData)
+	if err != nil {
+		return "", errors.Wrap(common_errors.ErrS3PresignFailed, err.Error())
+	}
+	return s3S.GetSignedURL(filesData.Name, expriryMinutes)
+}
+
 //it push the object into queue
 func (s3S *S3Store) SaveAsync(filesData *models.FileData) {
 	s3S.jobQueue <- filesData
@@ -167,4 +177,20 @@ func (s3S *S3Store) DownloadFile(filename string) ([]byte, error) {
 		return nil, errors.Wrap(common_errors.ErrS3FileBodyReader, err.Error())
 	}
 	return bytes, nil
+}
+
+func (s3S *S3Store) GetSignedURL(filepath string, expriryMinutes int) (string, error) {
+
+	// Define the parameters for the download request
+	req, _ := s3S.s3Service.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String("myBucket"),
+		Key:    aws.String("myKey"),
+	})
+	// Download the file
+	url, err := req.Presign(time.Minute * time.Duration(expriryMinutes))
+	if err != nil {
+		return "", errors.Wrap(common_errors.ErrS3FileDownload, err.Error())
+	}
+
+	return url, nil
 }

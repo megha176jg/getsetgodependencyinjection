@@ -19,6 +19,12 @@ type FileStore interface {
 
 	// it will return ack chan
 	GetAckChan() chan *models.FileData
+
+	//it will temporarily save file and returns signed url
+	TemporarySave(filesData *models.FileData, expriryMinutes int) (string, error)
+
+	// it will return signed url for already uploaded file
+	GetSignedURL(filepath string, expriryMinutes int) (string, error)
 }
 
 type Config interface {
