@@ -131,10 +131,11 @@ func (es ES) Patch(ctx context.Context, data io.Reader, index, docID string) err
 	return nil
 }
 
-func (es ES) SearchQuery(ctx context.Context, index string, query interface{}) (string, error) {
+func (es ES) SearchQuery(ctx context.Context, index string, query map[string]interface{}, resGenerator func(req io.ReadCloser) error) error {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		log.Printf("Error encoding search query: %s", err)
+		return err
 	}
 	// Perform the search request.
 	res, err := es.es.Search(
@@ -146,12 +147,12 @@ func (es ES) SearchQuery(ctx context.Context, index string, query interface{}) (
 	)
 	if err != nil {
 		log.Printf("Error getting response from elasticsearch GET: %s\n", err)
-		return "",nil
+		return nil
 	}
 
 	if res.IsError() {
 		log.Printf("[%s] Error searching query=%v", res.String(), query)
-		return "", fmt.Errorf("[%s] Error searching query=%v", res.Status(), query)
+		return fmt.Errorf("[%s] Error searching query=%v", res.Status(), query)
 	}
-	return res.String(),nil
+	return resGenerator(res.Body)
 }
