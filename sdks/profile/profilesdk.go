@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"bitbucket.org/junglee_games/getsetgo/httpclient"
 	"bitbucket.org/junglee_games/getsetgo/instrumenting/newrelic"
@@ -27,7 +28,7 @@ func New(config ProfileConfig, nr newrelic.Agent, httpClient httpclient.HTTPClie
 }
 
 func (psdk *ProfileSDK) GetUserByID(userId int) (*ProfileResponse, error) {
-	url := fmt.Sprintf(psdk.config.GetProfileEndpoint()+"?id=%s", userId)
+	url := fmt.Sprintf(psdk.config.GetProfileEndpoint()+"?id=%s", strconv.Itoa(userId))
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
