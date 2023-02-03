@@ -2,13 +2,12 @@ package loggerv2
 
 const (
 	// key constants
-	requestIdKey = "request_id"
-	timeKey      = "timestamp"
-	requestIDKey = "request_id"
-	appIDKey     = "app_id"
-	userIDKey    = "user_id"
-	uriKey       = "uri"
-	ipKey        = "ip"
+	timeKey      = "TimeStamp"
+	requestIDKey = "RequestID"
+	appIDKey     = "AppId"
+	userIDKey    = "UserID"
+	uriKey       = "URI"
+	ipKey        = "IP"
 
 	//colours
 	greenColor     = "\x1b[32m"

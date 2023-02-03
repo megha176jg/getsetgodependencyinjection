@@ -16,7 +16,7 @@ var (
 
 func init() {
 	Config{AppName: "default", Build: "dev"}.InitiateLogger()
-	appNameField = zapcore.Field{Key: "app", Type: zapcore.StringType, String: "default"}
+	appNameField = zapcore.Field{Key: "App", Type: zapcore.StringType, String: "default"}
 	middleLayers = make([]MiddleLayer, 0)
 }
 
