@@ -16,7 +16,7 @@ var (
 
 func init() {
 	Config{AppName: "default", Build: "dev"}.InitiateLogger()
-	appNameField = zapcore.Field{Key: "App", Type: zapcore.StringType, String: "default"}
+	appNameField = zap.Field{Key: "App", Type: zapcore.StringType, String: "default"}
 	middleLayers = make([]MiddleLayer, 0)
 }
 
@@ -35,6 +35,7 @@ func (c Config) InitiateLogger() error {
 
 	zapConfig.EncoderConfig = encoderConfig
 	zapLogger, err = zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel))
+
 	appNameField.String = c.AppName
 	return err
 }
@@ -44,41 +45,47 @@ func AddMiddleLayers(middlelayers ...MiddleLayer) {
 }
 
 func Info(ctx context.Context, format string, a ...any) {
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Info(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Info(msg, fields.fields...)
+}
+
+func Infow(ctx context.Context, message string, fs *Fields) {
+	fs.fields = append(fs.fields, appNameField)
+	_, msg, fields := executeMiddleLayers(ctx, message, fs)
+	zapLogger.Info(msg, fields.fields...)
 }
 
 func Error(ctx context.Context, format string, a ...any) {
 	fmt.Print(redColor)
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Error(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Error(msg, fields.fields...)
 	fmt.Print(defaultStyle)
 }
 
 func Warn(ctx context.Context, format string, a ...any) {
 	fmt.Print(yellowColor)
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Warn(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Warn(msg, fields.fields...)
 	fmt.Print(defaultStyle)
 }
 
 func Debug(ctx context.Context, format string, a ...any) {
 	fmt.Print(greenColor)
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Debug(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Debug(msg, fields.fields...)
 	fmt.Print(defaultStyle)
 }
 
 func Panic(ctx context.Context, format string, a ...any) {
 	fmt.Print(redColor)
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Panic(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Panic(msg, fields.fields...)
 	fmt.Print(defaultStyle)
 }
 
 func Fatal(ctx context.Context, format string, a ...any) {
 	fmt.Print(redColor)
-	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), []zap.Field{appNameField})
-	zapLogger.Fatal(msg, fields...)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Fatal(msg, fields.fields...)
 	fmt.Print(defaultStyle)
 }

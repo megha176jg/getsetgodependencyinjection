@@ -11,6 +11,10 @@ func ContainString(l []string, s string) bool {
 	return false
 }
 
+const (
+	RequestContextKey string = "RequestContext"
+)
+
 type RequestContext struct {
 	SessionID     string
 	RequestID     string
