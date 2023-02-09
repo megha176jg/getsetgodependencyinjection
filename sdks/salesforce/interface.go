@@ -8,7 +8,7 @@ import (
 
 const (
 	RequestAccessTokenPath = "/services/oauth2/token"
-	CreateTaskPath         = "/services/data/v56.0/sobjects/Task/"
+	CreateTaskPath         = "/services/data/v56.0/sobjects/KYC_Request__c/"
 )
 
 type Salesforce interface {
