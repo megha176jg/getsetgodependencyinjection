@@ -74,7 +74,7 @@ func (this JWRImpl) FullUpdateProfile(ctx context.Context,userID int, userProfil
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPut, this.BaseURL+"?id="+strconv.Itoa(userID), bytes.NewBuffer(json))
+	req, err := http.NewRequest(http.MethodPut, this.BaseURL+UpdateUserProfilePath+"?id="+strconv.Itoa(userID), bytes.NewBuffer(json))
 	if err != nil {
 		return err
 	}

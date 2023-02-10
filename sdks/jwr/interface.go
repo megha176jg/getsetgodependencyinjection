@@ -4,6 +4,7 @@ import "context"
 
 const (
 	GetUserProfilePath = "/user"
+	UpdateUserProfilePath = "/user"
 )
 
 type JWR interface {
