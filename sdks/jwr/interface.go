@@ -8,6 +8,7 @@ const (
 
 type JWR interface {
 	GetUserProfile(ctx context.Context, userID int, apiTimeOut int) (*UserProfile, error)
+	FullUpdateProfile(ctx context.Context,userID int, userProfile UserProfile,apiTimeOut int) error
 }
 
 func New(config JWRSDKConfig) (JWR, error) {
