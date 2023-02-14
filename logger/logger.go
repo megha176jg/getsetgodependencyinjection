@@ -1,87 +1,91 @@
 package logger
 
 import (
-	"strings"
+	"context"
+	"fmt"
 
-	"github.com/jinzhu/copier"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var loggerImpls map[string]LogInterface
+var (
+	zapLogger    *zap.Logger
+	appNameField zap.Field
+	middleLayers []MiddleLayer
+)
 
-// InitiateLogger represents logger service which use zap library to print logs
-func (this Config) InitiateLogger() (LogInterface, error) {
-
-	loggerImpls = make(map[string]LogInterface)
-	var zLogger LogInterface
-	var err error
-	switch this.LoggerService {
-	case "file":
-	default:
-
-		if this.Encoding == "" {
-			this.Encoding = "json"
-		}
-		var zConfig zapConfig
-		zConfig.PushMetrics = this.PushMetrics
-		if this.OutputPaths == "" {
-			this.OutputPaths = "stdout"
-		}
-		if this.ErrorOutputPaths == "" {
-			this.ErrorOutputPaths = "stdout"
-		}
-		copier.Copy(&zConfig, &this)
-		zLogger, err = getZapLogger(zConfig)
-		if err != nil {
-			return nil, err
-		}
-		loggerImpls["zap"] = zLogger
-	}
-	return zLogger, nil
+func init() {
+	Config{AppName: "default", Build: "dev"}.InitiateLogger()
+	appNameField = zap.Field{Key: "App", Type: zapcore.StringType, String: "default"}
+	middleLayers = make([]MiddleLayer, 0)
 }
 
-func getZapLogger(config zapConfig) (LogInterface, error) {
-
-	level := zapcore.Level(config.Level)
-	outputPaths := strings.Split(config.OutputPaths, ",")
-	errorPaths := strings.Split(config.ErrorOutputPaths, ",")
-	var messageKey, levelKey, timeKey string // callerKey
-	if config.EncoderConfig == (EncoderConfig{}) {
-		messageKey = "message"
-		levelKey = "level"
-		timeKey = "time"
-		//callerKey = "caller"
-	} else {
-		messageKey = config.EncoderConfig.MessageKey
-		levelKey = config.EncoderConfig.LevelKey
-		timeKey = config.EncoderConfig.TimeKey
-		//callerKey = config.EncoderConfig.CallerKey
-	}
-	zConfig := zap.Config{
-		Level:            zap.NewAtomicLevelAt(level),
-		Development:      config.DevelopmentEnv,
-		Encoding:         config.Encoding,
-		OutputPaths:      outputPaths,
-		ErrorOutputPaths: errorPaths,
-		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:   messageKey,
-			LevelKey:     levelKey,
-			EncodeLevel:  zapcore.CapitalLevelEncoder,
-			TimeKey:      timeKey,
-			EncodeTime:   zapcore.ISO8601TimeEncoder,
-			EncodeCaller: zapcore.ShortCallerEncoder,
-		},
-	}
+func (c Config) InitiateLogger() error {
 	var err error
-	Logger, err = zConfig.Build()
-	if err != nil {
-		return nil, err
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.TimeKey = timeKey
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	var zapConfig zap.Config
+	if c.Build == "prod" {
+		zapConfig = zap.NewProductionConfig()
+	} else {
+		zapConfig = zap.NewDevelopmentConfig()
 	}
-	defer Logger.Sync()
+	zapConfig.DisableStacktrace = true
 
-	return &zapImpl{
-		zap:         Logger,
-		PushMetrics: config.PushMetrics,
-	}, nil
+	zapConfig.EncoderConfig = encoderConfig
+	zapLogger, err = zapConfig.Build(zap.AddStacktrace(zapcore.ErrorLevel))
+
+	appNameField.String = c.AppName
+	return err
+}
+
+func AddMiddleLayers(middlelayers ...MiddleLayer) {
+	middleLayers = append(middleLayers, middlelayers...)
+}
+
+func Info(ctx context.Context, format string, a ...any) {
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Info(msg, fields.fields...)
+}
+
+func Infow(ctx context.Context, message string, fs *Fields) {
+	fs.fields = append(fs.fields, appNameField)
+	_, msg, fields := executeMiddleLayers(ctx, message, fs)
+	zapLogger.Info(msg, fields.fields...)
+}
+
+func Error(ctx context.Context, format string, a ...any) {
+	fmt.Print(redColor)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Error(msg, fields.fields...)
+	fmt.Print(defaultStyle)
+}
+
+func Warn(ctx context.Context, format string, a ...any) {
+	fmt.Print(yellowColor)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Warn(msg, fields.fields...)
+	fmt.Print(defaultStyle)
+}
+
+func Debug(ctx context.Context, format string, a ...any) {
+	fmt.Print(greenColor)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Debug(msg, fields.fields...)
+	fmt.Print(defaultStyle)
+}
+
+func Panic(ctx context.Context, format string, a ...any) {
+	fmt.Print(redColor)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Panic(msg, fields.fields...)
+	fmt.Print(defaultStyle)
+}
+
+func Fatal(ctx context.Context, format string, a ...any) {
+	fmt.Print(redColor)
+	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
+	zapLogger.Fatal(msg, fields.fields...)
+	fmt.Print(defaultStyle)
 }

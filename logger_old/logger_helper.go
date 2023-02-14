@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"bitbucket.org/junglee_games/getsetgo/logger/message"
+	"bitbucket.org/junglee_games/getsetgo/logger_old/message"
 	"bitbucket.org/junglee_games/getsetgo/utils"
 )
 
