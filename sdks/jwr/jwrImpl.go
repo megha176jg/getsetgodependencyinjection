@@ -62,3 +62,50 @@ func (this *JWRImpl) GetUserProfile(ctx context.Context, userID int, apiTimeOut 
 	}
 	return &result, nil
 }
+
+
+func (this JWRImpl) FullUpdateProfile(ctx context.Context,userID int, userProfile UserProfile,apiTimeOut int) error {
+
+	timeout := this.DefaultAPITimeout
+	if apiTimeOut > 0 {
+		timeout = apiTimeOut
+	}
+	json, err := json.Marshal(userProfile)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest(http.MethodPut, this.BaseURL+UpdateUserProfilePath+"?id="+strconv.Itoa(userID), bytes.NewBuffer(json))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", this.Token)
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+	timeoutDur := time.Duration(timeout) * time.Second
+	httpClient := http.Client{
+		Timeout:   timeoutDur,
+		Transport: t,
+	}
+
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		err = errors.Wrapf(err, "while making api call to PUT profile")
+		return err
+	}
+	body := &bytes.Buffer{}
+	_, err = body.ReadFrom(resp.Body)
+	if err != nil {
+		err = errors.Wrapf(err, "reading response from profile API")
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New(resp.Status + body.String())
+		return err
+	}
+	return nil
+}
