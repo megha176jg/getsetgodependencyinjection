@@ -1,6 +1,12 @@
 package loggerv2
 
+type Env int
+
 const (
+	//env's
+	PROD Env = 0
+	DEV  Env = 1
+
 	// key constants
 	timeKey      = "TimeStamp"
 	requestIDKey = "RequestID"
