@@ -26,6 +26,7 @@ type CreateTaskRequest struct {
 	SocialNetwork string `json:"social_network__c" validate:"required"`
 	AccessToken   string `json:",omitempty"`
 	BaseURL       string `json:",omitempty"`
+	Name string `json:"name"`
 }
 
 type SaleForceCreateTaskHTTPRequest struct {
@@ -34,6 +35,7 @@ type SaleForceCreateTaskHTTPRequest struct {
 	Priority      string `json:"Priority" validate:"required"`
 	UserID        string `json:"UserId__c" validate:"required"`
 	SocialNetwork string `json:"social_network__c" validate:"required"`
+	Name string `json:"Name" validate:"required"`
 }
 
 type CreateTaskResponse struct {

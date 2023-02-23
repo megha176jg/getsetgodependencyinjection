@@ -75,6 +75,7 @@ func (salesforceImpl *SalesforceImpl) CreateTask(ctx context.Context, createTask
 		Priority:      createTaskRequest.Priority,
 		UserID:        createTaskRequest.UserID,
 		SocialNetwork: createTaskRequest.SocialNetwork,
+		Name: createTaskRequest.Name,
 	}
 
 	createTaskRequestBytes, err := json.Marshal(httpReq)

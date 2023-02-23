@@ -144,6 +144,7 @@ func (es ES) SearchQuery(ctx context.Context, index string, query map[string]int
 		es.es.Search.WithBody(&buf),
 		es.es.Search.WithTrackTotalHits(true),
 		es.es.Search.WithPretty(),
+		es.es.Search.WithSize(100),
 	)
 	if err != nil {
 		log.Printf("Error getting response from elasticsearch GET: %s\n", err)
