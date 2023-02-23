@@ -1,4 +1,4 @@
-package logger
+package loggerv2
 
 import (
 	"context"
