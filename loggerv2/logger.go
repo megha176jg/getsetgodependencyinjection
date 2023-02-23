@@ -12,10 +12,11 @@ var (
 	zapLogger    *zap.Logger
 	appNameField zap.Field
 	middleLayers []MiddleLayer
+	env          Env
 )
 
 func init() {
-	Config{AppName: "default", Build: "dev"}.InitiateLogger()
+	Config{AppName: "default", Env: "dev"}.InitiateLogger()
 	appNameField = zap.Field{Key: "App", Type: zapcore.StringType, String: "default"}
 	middleLayers = make([]MiddleLayer, 0)
 }
@@ -26,7 +27,8 @@ func (c Config) InitiateLogger() error {
 	encoderConfig.TimeKey = timeKey
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	var zapConfig zap.Config
-	if c.Build == "prod" {
+	env = getEnv(c.Env)
+	if env == PROD {
 		zapConfig = zap.NewProductionConfig()
 	} else {
 		zapConfig = zap.NewDevelopmentConfig()
@@ -56,36 +58,36 @@ func Infow(ctx context.Context, message string, fs *Fields) {
 }
 
 func Error(ctx context.Context, format string, a ...any) {
-	fmt.Print(redColor)
+	setColour(zapcore.ErrorLevel)
 	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
 	zapLogger.Error(msg, fields.fields...)
-	fmt.Print(defaultStyle)
+	resetColour()
 }
 
 func Warn(ctx context.Context, format string, a ...any) {
-	fmt.Print(yellowColor)
+	setColour(zapcore.WarnLevel)
 	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
 	zapLogger.Warn(msg, fields.fields...)
-	fmt.Print(defaultStyle)
+	resetColour()
 }
 
 func Debug(ctx context.Context, format string, a ...any) {
-	fmt.Print(greenColor)
+	setColour(zapcore.DebugLevel)
 	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
 	zapLogger.Debug(msg, fields.fields...)
-	fmt.Print(defaultStyle)
+	resetColour()
 }
 
 func Panic(ctx context.Context, format string, a ...any) {
-	fmt.Print(redColor)
+	setColour(zap.PanicLevel)
 	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
 	zapLogger.Panic(msg, fields.fields...)
-	fmt.Print(defaultStyle)
+	resetColour()
 }
 
 func Fatal(ctx context.Context, format string, a ...any) {
-	fmt.Print(redColor)
+	setColour(zap.FatalLevel)
 	_, msg, fields := executeMiddleLayers(ctx, fmt.Sprintf(format, a...), &Fields{fields: []zap.Field{appNameField}})
 	zapLogger.Fatal(msg, fields.fields...)
-	fmt.Print(defaultStyle)
+	resetColour()
 }

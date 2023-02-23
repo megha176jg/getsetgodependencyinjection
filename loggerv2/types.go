@@ -17,8 +17,8 @@ func (f *Fields) AddField(key string, value any) {
 
 type MiddleLayer func(ctx context.Context, msg string, fields *Fields) (context.Context, string, *Fields)
 
-// Build : if prod it will set to prod else dev
+// Env : if prod it will set to prod else dev
 type Config struct {
 	AppName string
-	Build   string
+	Env     string
 }

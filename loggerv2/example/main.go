@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	loggerv2.Config{AppName: "Test App", Build: "dev"}.InitiateLogger()
+	loggerv2.Config{AppName: "Test App", Env: "dev"}.InitiateLogger()
 	ctx := context.Background()
 	loggerv2.AddMiddleLayers(loggerv2.RequestMiddleLayer)
 	ctx = context.WithValue(ctx, utils.RequestContextKey, &utils.RequestContext{RequestID: "134234", UserID: "456", IP: "196.1.100.23", URI: "/test/ping", ClientAppID: "RUMMY"})
