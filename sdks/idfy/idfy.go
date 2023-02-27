@@ -26,7 +26,7 @@ func New(config IdfyConfig, nr newrelic.Agent, client httpclient.HTTPClient) *Id
 	return &idfy
 }
 
-func (idfyImpl *IdfyImpl) Extract(documentType string, idfyrequest IdfyRequest) ([]byte, error) {
+func (idfyImpl *IdfyImpl) extract(documentType string, idfyrequest IdfyRequest) ([]byte, error) {
 	url := idfyImpl.config.GetIdfyEndpoint() + documentType
 	reqObj, _ := json.Marshal(idfyrequest)
 	payload := strings.NewReader(string(reqObj))
@@ -51,7 +51,7 @@ func (idfyImpl *IdfyImpl) Extract(documentType string, idfyrequest IdfyRequest) 
 }
 
 func (idfyImpl *IdfyImpl) ExtractPan(documentType string, idfyrequest IdfyRequest) (*IdfyPanResponse, error) {
-	byteResp, err := idfyImpl.Extract(documentType, idfyrequest)
+	byteResp, err := idfyImpl.extract(documentType, idfyrequest)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (idfyImpl *IdfyImpl) ExtractPan(documentType string, idfyrequest IdfyReques
 }
 
 func (idfyImpl *IdfyImpl) ExtractAadhar(documentType string, idfyrequest IdfyRequest) (*IdfyAadharResponse, error) {
-	byteResp, err := idfyImpl.Extract(documentType, idfyrequest)
+	byteResp, err := idfyImpl.extract(documentType, idfyrequest)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (idfyImpl *IdfyImpl) ExtractAadhar(documentType string, idfyrequest IdfyReq
 }
 
 func (idfyImpl *IdfyImpl) ExtractDl(documentType string, idfyrequest IdfyRequest) (*IdfyDlResponse, error) {
-	byteResp, err := idfyImpl.Extract(documentType, idfyrequest)
+	byteResp, err := idfyImpl.extract(documentType, idfyrequest)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (idfyImpl *IdfyImpl) ExtractDl(documentType string, idfyrequest IdfyRequest
 }
 
 func (idfyImpl *IdfyImpl) ExtractVoter(documentType string, idfyrequest IdfyRequest) (*IdfyVoterIdResponse, error) {
-	byteResp, err := idfyImpl.Extract(documentType, idfyrequest)
+	byteResp, err := idfyImpl.extract(documentType, idfyrequest)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (idfyImpl *IdfyImpl) ExtractVoter(documentType string, idfyrequest IdfyRequ
 }
 
 func (idfyImpl *IdfyImpl) ExtractPassport(documentType string, idfyrequest IdfyRequest) (*IdfyPassportResponse, error) {
-	byteResp, err := idfyImpl.Extract(documentType, idfyrequest)
+	byteResp, err := idfyImpl.extract(documentType, idfyrequest)
 	if err != nil {
 		return nil, err
 	}
